@@ -630,33 +630,45 @@ function initCarousel() {
 function initStatsCounter() {
     const statNumbers = document.querySelectorAll('.stat-number');
     
+    // Create intersection observer with better options for earlier triggering
     const observer = new IntersectionObserver(entries => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const target = entry.target;
                 const countTo = parseInt(target.getAttribute('data-count'));
                 let count = 0;
-                let duration = 2000; // Duration in milliseconds
+                let duration = 2500; // Increased duration for more visible counting effect
                 const startTime = performance.now();
                 
                 // Add some randomness to make numbers change at different rates
                 const randomFactor = 0.8 + Math.random() * 0.4; // Between 0.8 and 1.2
                 duration *= randomFactor;
                 
+                // More granular counting updates
                 const updateCount = (currentTime) => {
                     const elapsedTime = currentTime - startTime;
                     const progress = Math.min(elapsedTime / duration, 1);
                     
-                    // Use easeOutQuart for smooth animation
-                    const easeProgress = 1 - Math.pow(1 - progress, 4);
+                    // Use easeOutQuart for smooth animation with slight pause at beginning
+                    const easeProgress = progress < 0.1 ? progress * 3 : 1 - Math.pow(1 - progress, 4);
                     const currentCount = Math.floor(easeProgress * countTo);
                     
                     // Format numbers with commas for better readability
                     target.textContent = currentCount.toLocaleString();
                     
+                    // Add counter sound effect for auditory feedback (optional)
+                    if (progress > 0.1 && progress < 0.9 && Math.random() > 0.85) {
+                        try {
+                            const tickAudio = new Audio('data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tAwAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAADmADl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl5eXl//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAuiAAAAAAAAA5i/LvRzAAAAAAD/+xDkAAAF0BLdRTAAHrgJbnOYAQCQBAAAgAAFAAjEfhPgIcCQQQb8+/jffvv9B9//IPwQfhhyD4fB8H4Pn/gg+f//wQfB/9CDAcIH/g+CAI4QhCDgCAIA+D5//y');
+                            tickAudio.volume = 0.05;
+                            tickAudio.play().catch(() => {});
+                        } catch (e) {}
+                    }
+                    
                     if (progress < 1) {
                         requestAnimationFrame(updateCount);
                     } else {
+                        // Final value with proper formatting
                         target.textContent = countTo.toLocaleString();
                         
                         // Add a subtle bounce effect at the end
